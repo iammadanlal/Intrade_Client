@@ -1,0 +1,31 @@
+.title {
+    color: #000;
+    font-weight: 700;
+}
+
+.Img {
+    width: 10rem;
+}
+
+.p {
+    color: #000;
+    font-size: 12px;
+}
+
+.item1 {
+    margin-left: 150px;
+    margin-bottom: -90px;
+}
+.item2 {
+    margin-right: 90px;
+}
+
+.item3 {
+    margin-left: 170px;
+    margin-top: -30px;
+}
+
+.item4 {
+    margin-right: 70px;
+    margin-top: -170px;
+}

@@ -1,0 +1,15 @@
+.swiperSlide{
+  max-height: 386px;
+  min-height: 100px;
+  display: 'flex';
+  align-items: center;
+  justify-content: center;
+  margin: 0 !important;
+  overflow: hidden;
+}
+@media screen and (max-width: 567.99px) {
+
+}
+@media screen and (max-width: 367.99px) {
+
+}
