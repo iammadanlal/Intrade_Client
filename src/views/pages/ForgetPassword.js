@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, Fragment } from "react";
 import AnimationRevealPage from "../../helpers/AnimationRevealPage.js";
 import { Container as ContainerBase } from "../components/misc/Layouts";
 import tw from "twin.macro";
@@ -10,6 +10,7 @@ import googleIconImageSrc from "../images/google-icon.png";
 import twitterIconImageSrc from "../images/twitter-icon.png";
 import { ReactComponent as LoginIcon } from "feather-icons/dist/icons/log-in.svg";
 import { Link } from "react-router-dom";
+import axios from "services/axios";
 
 const Container = tw(
   ContainerBase
@@ -55,6 +56,7 @@ const IllustrationImage = styled.div`
   ${(props) => `background-image: url("${props.imageSrc}");`}
   ${tw`m-12 xl:m-16 w-full max-w-sm bg-contain bg-center bg-no-repeat`}
 `;
+const Alert = tw.div`fixed z-10 left-20 top-100 shadow w-full max-w-xs px-4 py-3 rounded-lg bg-red-200 text-red-700 font-medium`;
 
 const ForgetPassword = ({
   logoLinkUrl = "#",
@@ -63,43 +65,73 @@ const ForgetPassword = ({
   submitButtonText = "Reset Password",
   SubmitButtonIcon = LoginIcon,
   loginUrl = "/login",
-}) => (
-  <AnimationRevealPage>
-    <Container>
-      <Content>
-        <MainContainer>
-          <LogoLink href={logoLinkUrl}>
-            <LogoImage src={logo} />
-          </LogoLink>
-          <MainContent>
-            <Heading>{headingText}</Heading>
-            <p tw="mt-6 text-xs text-gray-600 text-center">
-              Enter the email address you use on Coursera. We'll send you a link
-              to reset your password.
-            </p>
-            <FormContainer>
-              <Form>
-                <Input type="email" placeholder="Email" />
-                <SubmitButton type="submit">
-                  <SubmitButtonIcon className="icon" />
-                  <span className="text">{submitButtonText}</span>
-                </SubmitButton>
-              </Form>
-              <p tw="mt-8 text-sm text-gray-600 text-center">
-                Back to{" "}
-                <Link to={loginUrl} tw="border-b border-gray-500 border-dotted">
-                  Login
-                </Link>
-              </p>
-            </FormContainer>
-          </MainContent>
-        </MainContainer>
-        <IllustrationContainer>
-          <IllustrationImage imageSrc={illustrationImageSrc} />
-        </IllustrationContainer>
-      </Content>
-    </Container>
-  </AnimationRevealPage>
-);
+}) => {
+  const [alert, setAlert] = useState(null);
+  const [mailId, setEmail] = useState("");
+  const onSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .post("/forgetPassword", { mailId })
+      .then((res) => res.data)
+      .then((data) => {
+        window.location.replace("/login");
+      })
+      .catch((err) => {
+        setAlert(err?.response?.data?.msg);
+        setTimeout(() => setAlert(null), 5000);
+        console.log(err);
+      });
+  };
+  return (
+    <Fragment>
+      {alert && <Alert>{alert}</Alert>}
+
+      <AnimationRevealPage>
+        <Container>
+          <Content>
+            <MainContainer>
+              <LogoLink href={logoLinkUrl}>
+                <LogoImage src={logo} />
+              </LogoLink>
+              <MainContent>
+                <Heading>{headingText}</Heading>
+                <p tw="mt-6 text-xs text-gray-600 text-center">
+                  Enter the email address you use on our platform. We'll send
+                  you a one time password.
+                </p>
+                <FormContainer>
+                  <Form onSubmit={onSubmit}>
+                    <Input
+                      type="email"
+                      value={mailId}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                    />
+                    <SubmitButton type="submit">
+                      <SubmitButtonIcon className="icon" />
+                      <span className="text">{submitButtonText}</span>
+                    </SubmitButton>
+                  </Form>
+                  <p tw="mt-8 text-sm text-gray-600 text-center">
+                    Back to{" "}
+                    <Link
+                      to={loginUrl}
+                      tw="border-b border-gray-500 border-dotted"
+                    >
+                      Login
+                    </Link>
+                  </p>
+                </FormContainer>
+              </MainContent>
+            </MainContainer>
+            <IllustrationContainer>
+              <IllustrationImage imageSrc={illustrationImageSrc} />
+            </IllustrationContainer>
+          </Content>
+        </Container>
+      </AnimationRevealPage>
+    </Fragment>
+  );
+};
 
 export default ForgetPassword;

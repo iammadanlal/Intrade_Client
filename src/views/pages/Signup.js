@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, Fragment } from "react";
 import AnimationRevealPage from "../../helpers/AnimationRevealPage.js";
 import { Container as ContainerBase } from "../components/misc/Layouts";
 import tw from "twin.macro";
@@ -9,7 +9,8 @@ import logo from "../images/logo.svg";
 import googleIconImageSrc from "../images/google-icon.png";
 import twitterIconImageSrc from "../images/twitter-icon.png";
 import { ReactComponent as SignUpIcon } from "feather-icons/dist/icons/user-plus.svg";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import axios from "services/axios";
 
 const Container = tw(
   ContainerBase
@@ -56,7 +57,9 @@ const IllustrationImage = styled.div`
   ${tw`m-12 xl:m-16 w-full max-w-lg bg-contain bg-center bg-no-repeat`}
 `;
 
-export default ({
+const Alert = tw.div`fixed z-10 left-20 top-100 shadow w-full max-w-xs px-4 py-3 rounded-lg bg-red-200 text-red-700 font-medium`;
+
+const Signup = ({
   logoLinkUrl = "#",
   illustrationImageSrc = illustration,
   headingText = "Register to your account",
@@ -77,18 +80,62 @@ export default ({
   tosUrl = "#",
   privacyPolicyUrl = "#",
   signInUrl = "/login",
-}) => (
-  <AnimationRevealPage>
-    <Container>
-      <Content>
-        <MainContainer>
-          <LogoLink href={logoLinkUrl}>
-            <LogoImage src={logo} />
-          </LogoLink>
-          <MainContent>
-            <Heading>{headingText}</Heading>
-            <FormContainer>
-              {/* <SocialButtonsContainer>
+}) => {
+  const auth = JSON.parse(localStorage.getItem("auth"));
+
+  if (auth) {
+    window.location.replace("/");
+  }
+
+  const location = useLocation();
+
+  const [alert, setAlert] = useState(null);
+  const [userData, setUserData] = useState({
+    user_name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleOnChnageUserData = (e) => {
+    const { id, value } = e.target;
+    setUserData({ ...userData, [id]: value });
+  };
+
+  const onSignupSubmit = (e) => {
+    e.preventDefault();
+    axios
+      .post("/signup", userData)
+      .then((res) => res.data)
+      .then((data) => {
+        localStorage.setItem("auth", JSON.stringify(data));
+        const url = new URLSearchParams(location.search).get("url");
+        if (url) {
+          window.location.replace(url);
+        } else {
+          window.location.replace("/");
+        }
+      })
+      .catch((err) => {
+        setAlert(err?.response?.data?.msg);
+        setTimeout(() => setAlert(null), 5000);
+        console.log(err);
+      });
+  };
+
+  return (
+    <Fragment>
+      {alert && <Alert>{alert}</Alert>}
+      <AnimationRevealPage>
+        <Container>
+          <Content>
+            <MainContainer>
+              <LogoLink href={logoLinkUrl}>
+                <LogoImage src={logo} />
+              </LogoLink>
+              <MainContent>
+                <Heading>{headingText}</Heading>
+                <FormContainer>
+                  {/* <SocialButtonsContainer>
                 {socialButtons.map((socialButton, index) => (
                   <SocialButton key={index} href={socialButton.url}>
                     <span className="iconContainer">
@@ -101,44 +148,69 @@ export default ({
               <DividerTextContainer>
                 <DividerText>Or Sign up with your e-mail</DividerText>
               </DividerTextContainer> */}
-              <Form>
-                <Input type="email" placeholder="Email" />
-                <Input type="password" placeholder="Password" />
-                <SubmitButton type="submit">
-                  <SubmitButtonIcon className="icon" />
-                  <span className="text">{submitButtonText}</span>
-                </SubmitButton>
-                <p tw="mt-6 text-xs text-gray-600 text-center">
-                  I agree to abide by Company's{" "}
-                  <a href={tosUrl} tw="border-b border-gray-500 border-dotted">
-                    Terms of Service
-                  </a>{" "}
-                  and its{" "}
-                  <a
-                    href={privacyPolicyUrl}
-                    tw="border-b border-gray-500 border-dotted"
-                  >
-                    Privacy Policy
-                  </a>
-                </p>
+                  <Form onSubmit={onSignupSubmit}>
+                    <Input
+                      type="text"
+                      id="user_name"
+                      value={userData.user_name}
+                      onChange={handleOnChnageUserData}
+                      placeholder="Name"
+                    />
+                    <Input
+                      type="email"
+                      id="email"
+                      value={userData.email}
+                      onChange={handleOnChnageUserData}
+                      placeholder="Email"
+                    />
+                    <Input
+                      type="password"
+                      id="password"
+                      value={userData.password}
+                      onChange={handleOnChnageUserData}
+                      placeholder="Password"
+                    />
+                    <SubmitButton type="submit">
+                      <SubmitButtonIcon className="icon" />
+                      <span className="text">{submitButtonText}</span>
+                    </SubmitButton>
+                    <p tw="mt-6 text-xs text-gray-600 text-center">
+                      I agree to abide by Company's{" "}
+                      <a
+                        href={tosUrl}
+                        tw="border-b border-gray-500 border-dotted"
+                      >
+                        Terms of Service
+                      </a>{" "}
+                      and its{" "}
+                      <a
+                        href={privacyPolicyUrl}
+                        tw="border-b border-gray-500 border-dotted"
+                      >
+                        Privacy Policy
+                      </a>
+                    </p>
 
-                <p tw="mt-8 text-sm text-gray-600 text-center">
-                  Already have an account?{" "}
-                  <Link
-                    to={signInUrl}
-                    tw="border-b border-gray-500 border-dotted"
-                  >
-                    Sign In
-                  </Link>
-                </p>
-              </Form>
-            </FormContainer>
-          </MainContent>
-        </MainContainer>
-        <IllustrationContainer>
-          <IllustrationImage imageSrc={illustrationImageSrc} />
-        </IllustrationContainer>
-      </Content>
-    </Container>
-  </AnimationRevealPage>
-);
+                    <p tw="mt-8 text-sm text-gray-600 text-center">
+                      Already have an account?{" "}
+                      <Link
+                        to={signInUrl}
+                        tw="border-b border-gray-500 border-dotted"
+                      >
+                        Sign In
+                      </Link>
+                    </p>
+                  </Form>
+                </FormContainer>
+              </MainContent>
+            </MainContainer>
+            <IllustrationContainer>
+              <IllustrationImage imageSrc={illustrationImageSrc} />
+            </IllustrationContainer>
+          </Content>
+        </Container>
+      </AnimationRevealPage>
+    </Fragment>
+  );
+};
+export default Signup;
